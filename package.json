@@ -1,7 +1,10 @@
 {
   "name": "az_healthcheck",
   "version": "0.0.1",
-  "bin":  "az_healthcheck.js",
+  "bin": "az_healthcheck.js",
   "description": "Monitoring all endpoints in an AZ. Provides a webservice that can be monitored by an AWS ELB. Provides a local status file that can be consumed by monitoring software.",
-  "license":     "GPL-3.0"
+  "license": "GPL-3.0",
+  "dependencies": {
+    "request": "^2.81.0"
+  }
 }
