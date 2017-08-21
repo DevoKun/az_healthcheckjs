@@ -24,11 +24,12 @@ var request = require('request');
 // Defaults
 //
 var port           = 3000;
-var hosts          = [ [{"name":"tomcat7","url":"http://0.0.0.0:8080/"}], [{"name":"hello","url":"world"}] ];
+var hosts          = {"tomcat7": {"name":"tomcat7","url":"http://0.0.0.0:8080/"}, "http": {"name":"http","url":"http://0.0.0.0:80/"} };
 var azStatusCode   = 200;
 var azStatusText   = 'healthy';
 var checkInterval  = 3000;
-var statusFile     = '/var/run/azh.status';
+//var statusFile     = '/var/run/azh.status';
+var statusFile     = 'azh.status';
 var configFilename = '/etc/azh.json';
 
 //
@@ -62,10 +63,20 @@ if (fs.existsSync(configFilename)) {
 /* **************************** */
 
 const requestHandler = (req, res) => {  
-  console.log(req.url)
+  //console.log(req.url)
   
   res.writeHead(azStatusCode,{'Content-Type': 'text/json'});
-  res.write(`{'status': azStatusText}`);
+  var hostsJson = JSON.stringify(hosts);
+  res.write(`{"statusCode": "${azStatusCode}","status": "${azStatusText}","hosts": ${hostsJson}}`);
+  
+  //hosts.forEach(function(host) {
+  /*
+  Object.keys(hosts).forEach(function(key) { 
+    var host = hosts[key];
+    res.write(`{"name":"${host.name}", "status": "${host.statusCode}", "url":"${host.url}"}`);
+  }) // hosts.forEach function
+  res.write(']}');
+  */
   res.end();
 
 } // requestHandler
@@ -90,23 +101,6 @@ server.listen(port, (err) => {
 
 
 
-/* **************************** */
-
-function httpHealthCheck(error, response, body) {
-
-  if (!error && response.statusCode == 200) {
-    console.log(body);
-    return 200;
-  } else {
-    return 500;
-  } // if
-  
-} // function
-
-
-
-
-
 
 /* **************************** */
 
@@ -114,35 +108,70 @@ function httpHealthCheck(error, response, body) {
 
 setInterval(function(){ 
 
-  console.log(`checking host status every ${checkInterval}`);
+  console.log(`\nwaiting ${checkInterval} seconds and then checking host statuses...`);
   
   
   azStatusCode = 200;
   azStatusText = 'healthy';
   
   
-  
-  hosts.forEach(function(host){ 
 
-    console.log(`testing host (${host.name}): ${host.url}`);
 
-    var httpCode = request(host, httpHealthCheck);
+  //console.log("\n\nhosts: %j\n\n", hosts)
   
-    if (httpCode == 500) {
-      azStatusCode = httpCode;
-      azStatusText = 'unhealthy';
-    } // if httpCode
+  //hosts.forEach(function(host) { 
+  Object.keys(hosts).forEach(function(key) { 
 
-    console.log(`${httpCode}: ${host.url}`);
+    var host = hosts[key];
+
+    //console.log("\n\nhost:\n%j\n\n", host)
+    //console.log("\n\n... nameO:", host.name)
+    //console.log("\n\n... name :", host['name'])
+    //console.log("\n\n... name0:", host[0]['name'])
+    //console.log("\n\n... name1:", host[1]['name'])
+
+    console.log(`  * testing host (${host.name}): ${host.url}`);
+
+    var httpCode  = 200;
+    var startTime = (new Date()).getTime();
+    request(host.url, function (error, response, body) {
+
+      if (!error && response.statusCode == 200) {
+        //console.log(body);
+        httpCode     = 200;
+        azStatusCode = 200;
+        //console.log("\n200-host: %j\n", hosts[key])
+        hosts[key].statusCode = response.statusCode
+      } else {
+        //console.log(error.code)
+        httpCode     = 500;
+        azStatusCode = 500;
+        azStatusText = 'unhealthy';
+        //console.log("\n500-host: %j\n", hosts[key])
+        var errorCode = error.code;
+        //if (error.code == 'ECONNREFUSED') {errorCode = ""}
+        //if (error.code == 'ETIMEDOUT') {errorCode = ""}
+        if (error.connect == true) {errorCode = "${errorCode} (ECONNTIMEDOUT)"}
+        hosts[key].statusCode = error.code
+      } // if
+      var stopTime     = (new Date()).getTime();
+      var responseTime = stopTime - startTime;
+      hosts[key].responseTime = responseTime;
+
+      //console.log(`1-httpCode: ${httpCode}`)
+    }); // request
   
-    hosts.host.statusCode = httpCode;
+
+    //console.log(`2-${httpCode}: ${host.url}`);
+  
+    //hosts.host.statusCode = httpCode;
 
 
   }) // hosts.forEach
 
-  fs.writeFile(statusFile, `${azStatuscode}:${azStatusText}`, function(err) {
+  fs.writeFile(statusFile, `${azStatusCode}:${azStatusText}`, function(err) {
     if(err) { return console.log(err); }
-    console.log(`Wrote status: [${azStatuscode}:${azStatusText}] to log file: ${statusFile}`);
+    console.log(`  * wrote status: [${azStatusCode}:${azStatusText}] to log file: ${statusFile}`);
   }); // fs.writeFile
 
 
