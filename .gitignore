@@ -60,3 +60,4 @@ typings/
 az_healthcheck-linux
 az_healthcheck-macos
 az_healthcheck-win.exe
+azh.status
