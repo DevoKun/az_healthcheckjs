@@ -8,7 +8,7 @@
 * Provides an HTTP webservice that can be consumed by an ELB or Route53 healthcheck.
 * Writes a healthcheck status file on the local filesystem that can be consumed by monitoring software.
 
-![AZ Healthcheck Diagram](az_healthcheck.png)
+![AZ Healthcheck Diagram](https://raw.githubusercontent.com/DevoKun/az_healthcheckjs/master/az_healthcheck.png)
 
 
 
