@@ -37,18 +37,35 @@ var dots           = '............................................';
 //
 // Determine which config file to use.
 //
-var configFileName = 'azh.json';
+var configFileName = 'az_healthcheck.json';
 var configFilePath = '/etc/';
+
 var configFilePathAndName = (configFilePath + configFileName);
+console.log(`... looking for config file: [${configFilePathAndName}]`)
 if (fs.existsSync(configFilePathAndName)) {
-  console.log(`found config file at system level: ${configFilePath}`)
-} else if (fs.existsSync(process.cwd() + configFileName)) {
-  console.log(`found config file in CWD directory: ` + process.cwd())
-  configFilePathAndName = process.cwd() + configFileName;
+  console.log(`    found config file at system level: ${configFilePath}`)
 } else {
-  console.log(`could not find config file`)
-  configFilePathAndName = undefined;
-}
+  console.log(`    not found.`)
+  configFilePathAndName = process.cwd() + '/' + configFileName
+  console.log(`... looking for config file: [${configFilePathAndName}]`)
+
+  if (fs.existsSync(configFilePathAndName)) {
+    console.log(`    found config file`)
+  } else {
+    console.log(`    not found.`)
+    configFilePathAndName = './' + configFileName
+    console.log(`... looking for config file: [${configFilePathAndName}]`)
+
+    if (fs.existsSync(configFilePathAndName)) {
+      console.log(`    found config file`)
+    } else {
+      console.log(`    could not find config file. Using built-in defaults.`)
+      configFilePathAndName = undefined;
+    } // if 3
+
+  } // if 2
+
+} // if 1
 
 //
 // Load Config
@@ -56,7 +73,7 @@ if (fs.existsSync(configFilePathAndName)) {
 if (fs.existsSync(configFilePathAndName)) {
   console.log(`config file: (${configFilePathAndName}).`)
 
-  var conf = require();
+  var conf = require(configFilePathAndName);
 
   if (conf.hasOwnProperty('port')) {
     port = conf['port'];
