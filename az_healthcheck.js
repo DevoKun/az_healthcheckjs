@@ -122,7 +122,7 @@ server.listen(port, (err) => {
 function writeAzStatusFile(statusCode='299', statusText='unknown') {
 
   console.log(`  * writing status....................: [${statusCode}:${statusText}] to log file: ${statusFile}`)
-  fs.writeFile(statusFile, `${statusCode}:${statusText}`, function(err) {
+  fs.writeFile(statusFile, `{"statusCode":"${statusCode}","statusText":"${statusText}"}`, function(err) {
     if(err) {
       return console.log(err);
     } else {
