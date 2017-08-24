@@ -23,23 +23,21 @@
 
 ```json
 {
-  "allowed_failed_checks": 0,
-  "options": {
-    "status_file_name": "/var/run/az_health_check.status"
-  },
-  "httpchecks": {
-    "identme": {
-      "url": "http://ident.me/",
-      "headers": {
-        "X-Browser-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
-      }
-    },
-    "slashdot": {
-      "url": "https://www.slashdot.org/"
-    }
-  }
+"browserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36",
+"checkInterval": 3000,
+"hosts": {
+  "tomcat7": {"name":"tomcat7","url":"http://0.0.0.0:8080/"},
+  "http":    {"name":"http",
+              "url":"http://0.0.0.0:80/",
+              "headers": {
+                  "X-Browser-Agent": "Mozilla/5.0"
+              }
+             }
+},
+"port": 3000,
+"statusFile": "/var/run/az_healthcheck_status.json",
+"check_mk_service_name":"az_healthcheck"
 }
-
 ```
 
 
@@ -168,4 +166,3 @@ sudo python -m SimpleHTTPServer 8080
 ### Check_MK Local Check
 
 * Move **az_healthcheck_checkmk.js** to **/usr/lib/check_mk/local/**
-
