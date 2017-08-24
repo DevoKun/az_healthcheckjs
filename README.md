@@ -159,3 +159,13 @@ sudo python -m SimpleHTTPServer 8080
 ./az_healthcheck.js
 ```
 
+
+
+
+
+## Getting results in to monitoring software
+
+### Check_MK Local Check
+
+* Move **az_healthcheck_checkmk.js** to **/usr/lib/check_mk/local/**
+

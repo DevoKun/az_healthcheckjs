@@ -12,35 +12,35 @@
 
 
 
-var http    = require('http');
-var fs      = require('fs');
+const http    = require('http')
+const fs      = require('fs')
 
 /* npm install request */
-var request = require('request');
+const request = require('request')
 
 
 
 //
 // Defaults
 //
-var port           = 3000;
-var hosts          = {"tomcat7": {"name":"tomcat7","url":"http://0.0.0.0:8080/"}, "http": {"name":"http","url":"http://0.0.0.0:80/"} };
+var port           = 3000
+var hosts          = {"tomcat7": {"name":"tomcat7","url":"http://0.0.0.0:8080/"}, "http": {"name":"http","url":"http://0.0.0.0:80/"} }
 var browserAgent   = "azHealthcheckJs"
 
-var azStatusCode   = 404;
-var azStatusText   = 'healthy';
-var checkInterval  = 3000;
-//var statusFile     = '/var/run/azh.status';
-var statusFile     = 'azh.status';
-var dots           = '............................................';
+var azStatusCode   = 404
+var azStatusText   = 'healthy'
+var checkInterval  = 3000
+//var statusFile     = '/var/run/azh.status'
+var statusFile     = 'azh.status'
+var dots           = '............................................'
 
 //
 // Determine which config file to use.
 //
-var configFileName = 'az_healthcheck.json';
-var configFilePath = '/etc/';
+var configFileName = 'az_healthcheck.json'
+var configFilePath = '/etc/'
 
-var configFilePathAndName = (configFilePath + configFileName);
+var configFilePathAndName = (configFilePath + configFileName)
 console.log(`... looking for config file: [${configFilePathAndName}]`)
 if (fs.existsSync(configFilePathAndName)) {
   console.log(`    found config file at system level: ${configFilePath}`)
@@ -60,7 +60,7 @@ if (fs.existsSync(configFilePathAndName)) {
       console.log(`    found config file`)
     } else {
       console.log(`    could not find config file. Using built-in defaults.`)
-      configFilePathAndName = undefined;
+      configFilePathAndName = undefined
     } // if 3
 
   } // if 2
@@ -73,26 +73,26 @@ if (fs.existsSync(configFilePathAndName)) {
 if (fs.existsSync(configFilePathAndName)) {
   console.log(`config file: (${configFilePathAndName}).`)
 
-  var conf = require(configFilePathAndName);
+  var conf = require(configFilePathAndName)
 
   if (conf.hasOwnProperty('port')) {
-    port = conf['port'];
+    port = conf['port']
   } // if
 
   if (conf.hasOwnProperty('hosts')) {
-    hosts = conf['hosts'];
+    hosts = conf['hosts']
   } // if
 
   if (conf.hasOwnProperty('checkInterval')) {
-    checkInterval = conf['checkInterval'];
+    checkInterval = conf['checkInterval']
   } // if
 
   if (conf.hasOwnProperty('statusFile')) {
-    statusFile = conf['statusFile'];
+    statusFile = conf['statusFile']
   } // if
 
   if (conf.hasOwnProperty('browserAgent')) {
-    browserAgent = conf['browserAgent'];
+    browserAgent = conf['browserAgent']
   } // if
 
 } else { // if fs.existsSync(configFilename)
@@ -105,10 +105,10 @@ if (fs.existsSync(configFilePathAndName)) {
 
 const requestHandler = (req, res) => {
   
-  res.writeHead(azStatusCode,{'Content-Type': 'text/json'});
-  var hostsJson = JSON.stringify(hosts);
-  res.write(`{"statusCode": "${azStatusCode}","status": "${azStatusText}","hosts": ${hostsJson}}`);
-  res.end();
+  res.writeHead(azStatusCode,{'Content-Type': 'text/json'})
+  var hostsJson = JSON.stringify(hosts)
+  res.write(`{"statusCode": "${azStatusCode}","status": "${azStatusText}","hosts": ${hostsJson}}`)
+  res.end()
 
 } // requestHandler
 
@@ -141,9 +141,9 @@ function writeAzStatusFile(statusCode='299', statusText='unknown') {
   console.log(`  * writing status....................: [${statusCode}:${statusText}] to log file: ${statusFile}`)
   fs.writeFile(statusFile, `{"statusCode":"${statusCode}","statusText":"${statusText}"}`, function(err) {
     if(err) {
-      return console.log(err);
+      return console.log(err)
     } else {
-      console.log(`  * wrote status......................: [${azStatusCode}:${azStatusText}] to log file: ${statusFile}`);
+      console.log(`  * wrote status......................: [${azStatusCode}:${azStatusText}] to log file: ${statusFile}`)
     } // if err
   }); // fs.writeFile
 
@@ -154,16 +154,16 @@ function writeAzStatusFile(statusCode='299', statusText='unknown') {
 
 setInterval(function(){ 
 
-  console.log(`\nwaiting ${checkInterval} seconds and then checking host statuses...`);
+  console.log(`\nwaiting ${checkInterval} seconds and then checking host statuses...`)
   
-  azStatusCode = 200;
-  azStatusText = 'healthy';
+  azStatusCode = 200
+  azStatusText = 'healthy'
   
   Object.keys(hosts).forEach(function(key) { 
 
-    var host = hosts[key];
+    var host = hosts[key]
 
-    console.log(`  * testing host (${host.name})` + dots.substring(1, (20-host.name.length)) + `: ${host.url}`);
+    console.log(`  * testing host (${host.name})` + dots.substring(1, (20-host.name.length)) + `: ${host.url}`)
 
     //
     // add user agent string if not customized in config
@@ -176,7 +176,7 @@ setInterval(function(){
       host.headers["X-Browser-Agent"] = browserAgent
     } // if
 
-    var startTime = (new Date()).getTime();
+    var startTime = (new Date()).getTime()
     request({url:host.url, headers:host.headers}, function (error, response, body) {
 
       if (!error && response.statusCode == 200) {
@@ -184,22 +184,22 @@ setInterval(function(){
         console.log(`  * good state on ${key}, AZ health is: [${azStatusCode}:${azStatusText}]`)
         if ( (key == Object.keys(hosts)[Object.keys(hosts).length - 1]) &&
              (azStatusCode == 200) ) {
-          writeAzStatusFile(azStatusCode, azStatusText);
+          writeAzStatusFile(azStatusCode, azStatusText)
         } // if last key in hosts object
       } else {
-        azStatusCode  = 503;
-        azStatusText  = 'unhealthy';
-        var errorCode = error.code;
+        azStatusCode  = 503
+        azStatusText  = 'unhealthy'
+        var errorCode = error.code
         //if (error.code == 'ECONNREFUSED') {errorCode = ""}
         //if (error.code == 'ETIMEDOUT') {errorCode = ""}
         if (error.connect == true) {errorCode = "${errorCode} (ECONNTIMEDOUT)"}
         hosts[key].statusCode = errorCode
         console.log(`  * bad state on ${key}, setting AZ health: [${azStatusCode}:${azStatusText}]`)
-        writeAzStatusFile(azStatusCode, azStatusText);
+        writeAzStatusFile(azStatusCode, azStatusText)
       } // if
-      var stopTime     = (new Date()).getTime();
-      var responseTime = stopTime - startTime;
-      hosts[key].responseTime = responseTime;
+      var stopTime     = (new Date()).getTime()
+      var responseTime = stopTime - startTime
+      hosts[key].responseTime = responseTime
 
     }); // request
   
